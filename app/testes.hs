@@ -20,6 +20,18 @@ getRandomPalavra lista = do
     return $ lista !! index
 
 
+comparaPalavra :: T.Text -> T.Text -> Bool
+comparaPalavra tentativa resposta = tentativa == resposta
+
+
+receberPalavra :: [T.Text] -> T.Text -> IO T.Text
+receberPalavra lista tentativa
+    | T.length tentativa /= 5 = return "A palavra precisa ter 5 letras!"
+    | otherwise = do
+        resposta <- getRandomPalavra lista
+        if comparaPalavra tentativa resposta
+           then return "Acertou!"
+           else return "Errou!"
 
 
 
