@@ -57,13 +57,13 @@ jogar resposta tentativa
         if length palpite /= 5
            then do
                putStrLn "A palavra precisa ter 5 letras! Tente novamente."
-               jogar resposta tentativa  -- não incrementa
+               jogar resposta tentativa  
            else do
                let resultado = receberPalpite (T.pack palpite) resposta tentativa
                putStrLn (T.unpack resultado)
                if resultado == "Acertou!"
                   then putStrLn "Parabéns!"
-                  else jogar resposta (tentativa + 1) -- aqui sim incrementa
+                  else jogar resposta (tentativa + 1) 
 
 
 
