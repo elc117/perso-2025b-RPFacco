@@ -41,7 +41,6 @@ receberPalpite :: T.Text -> T.Text -> Int -> T.Text
 receberPalpite tentativa resposta tentativas
     | T.length tentativa /= 5 = "A palavra precisa ter 5 letras!"
     | comparaPalavra tentativa resposta = "Acertou!"
-    | tentativas >= 5 = "Errou! A resposta era: " <> resposta
     | otherwise =
         let (certas, erradas, ausentes) = gerarDicas tentativa resposta
         in "Letras em posicao certa: " <> certas
