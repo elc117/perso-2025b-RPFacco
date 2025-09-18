@@ -49,6 +49,19 @@ receberPalpite tentativa resposta tentativas
         <> " | Letras ausentes: " <> ausentes
 
 
+jogar :: T.Text -> Int -> IO ()
+jogar resposta tentativa
+    | tentativa >= 6 = putStrLn $ "Você perdeu! A resposta era: " ++ T.unpack resposta
+    | otherwise = do
+        putStrLn "Digite uma palavra de 5 letras:"
+        palpite <- getLine
+        let resultado = receberPalpite (T.pack palpite) resposta tentativa
+        putStrLn (T.unpack resultado)
+        if resultado == "Acertou!"
+           then putStrLn "Parabéns!"
+           else jogar resposta (tentativa + 1)
+
+
 
 main :: IO ()
 main = scotty 3000 $ do
