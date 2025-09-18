@@ -19,3 +19,4 @@ Curso: Sistemas de Informação
    1. https://raw.githubusercontent.com/elc117/demo-scotty-codespace-2025b/main/src/02-scotty-random-advice/randomAdviceService.hs
    2. https://www.haskell.org/tutorial/io.html
    3. https://hackage.haskell.org/package/text-0.1/docs/Data-Text.html
+   4. https://learnyouahaskell.com/recursion
