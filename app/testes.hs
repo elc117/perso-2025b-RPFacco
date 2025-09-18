@@ -55,11 +55,17 @@ jogar resposta tentativa
     | otherwise = do
         putStrLn "Digite uma palavra de 5 letras:"
         palpite <- getLine
-        let resultado = receberPalpite (T.pack palpite) resposta tentativa
-        putStrLn (T.unpack resultado)
-        if resultado == "Acertou!"
-           then putStrLn "Parabéns!"
-           else jogar resposta (tentativa + 1)
+        if length palpite /= 5
+           then do
+               putStrLn "A palavra precisa ter 5 letras! Tente novamente."
+               jogar resposta tentativa  -- não incrementa
+           else do
+               let resultado = receberPalpite (T.pack palpite) resposta tentativa
+               putStrLn (T.unpack resultado)
+               if resultado == "Acertou!"
+                  then putStrLn "Parabéns!"
+                  else jogar resposta (tentativa + 1) -- aqui sim incrementa
+
 
 
 
