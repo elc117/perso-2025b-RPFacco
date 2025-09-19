@@ -67,6 +67,8 @@ main = do
 
     scotty 3000 $ do
         middleware logStdoutDev
+        middleware $ staticPolicy (addBase "static")
+        
         get "/" $ file "static/index.html"
 
         -- iniciar nova partida (sorteia nova palavra e zera tentativas)

@@ -2,64 +2,13 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Termo em Haskell</title>
+  <title>Termo em Haskell + Elm</title>
+  <script src="elm.js"></script>
 </head>
 <body>
-  <h1>Bem-vindo ao Termo!</h1>
-
-  <p>Digite seu palpite de 5 letras:</p>
-  <form onsubmit="return enviarPalpite(event)">
-    <input type="text" id="palpite" placeholder="Digite aqui" />
-    <button type="submit">Chutar</button>
-  </form>
-
-  <h2>Tentativas:</h2>
-  <ul id="historico"></ul>
-
+  <div id="app"></div>
   <script>
-    async function novaPartida() {
-      const res = await fetch("/nova");
-      const msg = await res.text();
-      const historico = document.getElementById("historico");
-      historico.innerHTML = ""; // limpa tentativas antigas
-
-      const li = document.createElement("li");
-      li.innerText = msg;
-      historico.appendChild(li);
-
-      // remove botão de "Nova Partida" se já existir
-      const botaoExistente = document.getElementById("botao-nova");
-      if (botaoExistente) botaoExistente.remove();
-    }
-
-    async function enviarPalpite(event) {
-      if (event) event.preventDefault();
-      const p = document.getElementById("palpite").value.trim();
-      if (!p) return;
-
-      const res = await fetch(`/palpite/${p}`);
-      const texto = await res.text();
-
-      const li = document.createElement("li");
-      li.innerText = texto;
-      document.getElementById("historico").appendChild(li);
-
-      document.getElementById("palpite").value = "";
-
-      // 🔎 Se acabou o jogo (acertou ou fim de tentativas), mostra botão
-      if (texto.includes("Fim de jogo") || texto.includes("Parabéns")) {
-        if (!document.getElementById("botao-nova")) {
-          const btn = document.createElement("button");
-          btn.id = "botao-nova";
-          btn.innerText = "Nova Partida";
-          btn.onclick = novaPartida;
-          document.body.appendChild(btn);
-        }
-      }
-
-      return false;
-    }
+    var app = Elm.Main.init({ node: document.getElementById("app") });
   </script>
-
 </body>
 </html>
