@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 import Web.Scotty
 import Network.Wai.Middleware.RequestLogger (logStdoutDev)
@@ -10,7 +11,23 @@ import qualified Data.Text.IO as TIO
 import qualified Data.Text.Lazy as TL
 import Data.List (nub)
 import Data.IORef
+import GHC.Generics (Generic)
+import Data.Aeson (ToJSON, FromJSON)
 
+data Resposta = Resposta
+  { mensagem  :: T.Text
+  , certas    :: [String]
+  , erradas   :: [String]
+  , ausentes  :: [String]
+  , tentativa :: Int
+  , fimDeJogo :: Bool
+  } deriving (Show, Generic)
+
+instance ToJSON Resposta
+instance FromJSON Resposta
+
+toListChars :: T.Text -> [String]
+toListChars = map (:[]) . T.unpack
 
 -- carregar palavras do .txt
 carregarPalavras :: IO [T.Text]
@@ -44,17 +61,43 @@ gerarDicas palpite resposta =
        , T.pack (nub ausentes)
        )
 
--- recebe palpite
-receberPalpite :: T.Text -> T.Text -> Int -> T.Text
+
+receberPalpite :: T.Text -> T.Text -> Int -> Resposta
 receberPalpite palpite resposta numTentativa
-    | T.length palpite /= 5 = "A palavra precisa ter 5 letras!"
-    | comparaPalavra palpite resposta = "Acertou!"
+    -- palpite invalido (nao conta tentativa)
+    | T.length palpite /= 5 =
+        Resposta
+          { mensagem  = "A palavra precisa ter 5 letras!"
+          , certas    = []
+          , erradas   = []
+          , ausentes  = []
+          , tentativa = numTentativa
+          , fimDeJogo = False
+          }
+
+    -- acertou (fim de jogo)
+    | comparaPalavra palpite resposta =
+        let (certasT, _, _) = gerarDicas palpite resposta
+        in Resposta
+          { mensagem  = "Parabéns, você acertou a palavra!"
+          , certas    = toListChars certasT
+          , erradas   = []
+          , ausentes  = []
+          , tentativa = numTentativa + 1
+          , fimDeJogo = True
+          }
+
+    -- errou, mas eh tentativa valida (conta +1)
     | otherwise =
-        let (certas, erradas, ausentes) = gerarDicas palpite resposta
-        in "Tentativa " <> T.pack (show (numTentativa+1)) <> ":\n"
-        <> " Certas: " <> certas
-        <> " | Erradas: " <> erradas
-        <> " | Ausentes: " <> ausentes
+        let (certasT, erradasT, ausentesT) = gerarDicas palpite resposta
+        in Resposta
+          { mensagem  = "Tentativa " <> T.pack (show (numTentativa + 1))
+          , certas    = toListChars certasT
+          , erradas   = toListChars erradasT
+          , ausentes  = toListChars ausentesT
+          , tentativa = numTentativa + 1
+          , fimDeJogo = False
+          }
 
         
 
@@ -77,7 +120,15 @@ main = do
             palavra <- liftIO (getRandomPalavra lista)
             liftIO (writeIORef palavraRef palavra)
             liftIO (writeIORef tentativasRef 0)
-            text "Nova palavra sorteada! Boa sorte."
+            json Resposta
+                { mensagem  = "Nova palavra sorteada! Boa sorte."
+                , certas    = []
+                , erradas   = []
+                , ausentes  = []
+                , tentativa = 0
+                , fimDeJogo = False
+                }
+
 
         -- rota de palpite
         get "/palpite/:p" $ do
@@ -88,17 +139,24 @@ main = do
             tentativas <- liftIO (readIORef tentativasRef)
 
             if not (checarTentativas tentativas)
-            then text (TL.fromStrict ("Fim de jogo! A palavra era: " <> palavra))
+            then json Resposta
+                    { mensagem  = "Fim de jogo! A palavra era: " <> palavra
+                    , certas    = []
+                    , erradas   = []
+                    , ausentes  = []
+                    , tentativa = tentativas
+                    , fimDeJogo = True
+                    }
             else do
                 let resposta = receberPalpite palpite palavra tentativas
-
                 if T.length palpite /= 5
-                then text (TL.fromStrict resposta)  -- não conta tentativa
+                then json resposta 
                 else if comparaPalavra palpite palavra
-                    then text (TL.fromStrict ("Parabéns, você acertou a palavra: " <> palavra))
+                    then json resposta
                     else do
-                    liftIO $ writeIORef tentativasRef (tentativas + 1)
-                    text (TL.fromStrict resposta)
+                        liftIO $ writeIORef tentativasRef (tentativas + 1)
+                        json resposta
+
 
 
 

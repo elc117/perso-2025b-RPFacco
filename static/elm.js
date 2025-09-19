@@ -5353,6 +5353,7 @@ var $author$project$Main$RecebeNova = function (a) {
 var $author$project$Main$RecebeResposta = function (a) {
 	return {$: 'RecebeResposta', a: a};
 };
+var $elm$json$Json$Decode$decodeString = _Json_runOnString;
 var $elm$http$Http$BadStatus_ = F2(
 	function (a, b) {
 		return {$: 'BadStatus_', a: a, b: b};
@@ -5908,17 +5909,6 @@ var $elm$http$Http$expectStringResponse = F2(
 			$elm$core$Basics$identity,
 			A2($elm$core$Basics$composeR, toResult, toMsg));
 	});
-var $elm$http$Http$BadBody = function (a) {
-	return {$: 'BadBody', a: a};
-};
-var $elm$http$Http$BadStatus = function (a) {
-	return {$: 'BadStatus', a: a};
-};
-var $elm$http$Http$BadUrl = function (a) {
-	return {$: 'BadUrl', a: a};
-};
-var $elm$http$Http$NetworkError = {$: 'NetworkError'};
-var $elm$http$Http$Timeout = {$: 'Timeout'};
 var $elm$core$Result$mapError = F2(
 	function (f, result) {
 		if (result.$ === 'Ok') {
@@ -5930,6 +5920,17 @@ var $elm$core$Result$mapError = F2(
 				f(e));
 		}
 	});
+var $elm$http$Http$BadBody = function (a) {
+	return {$: 'BadBody', a: a};
+};
+var $elm$http$Http$BadStatus = function (a) {
+	return {$: 'BadStatus', a: a};
+};
+var $elm$http$Http$BadUrl = function (a) {
+	return {$: 'BadUrl', a: a};
+};
+var $elm$http$Http$NetworkError = {$: 'NetworkError'};
+var $elm$http$Http$Timeout = {$: 'Timeout'};
 var $elm$http$Http$resolve = F2(
 	function (toResult, response) {
 		switch (response.$) {
@@ -5953,12 +5954,19 @@ var $elm$http$Http$resolve = F2(
 					toResult(body));
 		}
 	});
-var $elm$http$Http$expectString = function (toMsg) {
-	return A2(
-		$elm$http$Http$expectStringResponse,
-		toMsg,
-		$elm$http$Http$resolve($elm$core$Result$Ok));
-};
+var $elm$http$Http$expectJson = F2(
+	function (toMsg, decoder) {
+		return A2(
+			$elm$http$Http$expectStringResponse,
+			toMsg,
+			$elm$http$Http$resolve(
+				function (string) {
+					return A2(
+						$elm$core$Result$mapError,
+						$elm$json$Json$Decode$errorToString,
+						A2($elm$json$Json$Decode$decodeString, decoder, string));
+				}));
+	});
 var $elm$http$Http$emptyBody = _Http_emptyBody;
 var $elm$http$Http$Request = function (a) {
 	return {$: 'Request', a: a};
@@ -6134,6 +6142,34 @@ var $elm$http$Http$get = function (r) {
 };
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$core$Basics$not = _Basics_not;
+var $author$project$Main$Resposta = F6(
+	function (mensagem, certas, erradas, ausentes, tentativa, fimDeJogo) {
+		return {ausentes: ausentes, certas: certas, erradas: erradas, fimDeJogo: fimDeJogo, mensagem: mensagem, tentativa: tentativa};
+	});
+var $elm$json$Json$Decode$bool = _Json_decodeBool;
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$json$Json$Decode$int = _Json_decodeInt;
+var $elm$json$Json$Decode$list = _Json_decodeList;
+var $elm$json$Json$Decode$map6 = _Json_map6;
+var $elm$json$Json$Decode$string = _Json_decodeString;
+var $author$project$Main$respostaDecoder = A7(
+	$elm$json$Json$Decode$map6,
+	$author$project$Main$Resposta,
+	A2($elm$json$Json$Decode$field, 'mensagem', $elm$json$Json$Decode$string),
+	A2(
+		$elm$json$Json$Decode$field,
+		'certas',
+		$elm$json$Json$Decode$list($elm$json$Json$Decode$string)),
+	A2(
+		$elm$json$Json$Decode$field,
+		'erradas',
+		$elm$json$Json$Decode$list($elm$json$Json$Decode$string)),
+	A2(
+		$elm$json$Json$Decode$field,
+		'ausentes',
+		$elm$json$Json$Decode$list($elm$json$Json$Decode$string)),
+	A2($elm$json$Json$Decode$field, 'tentativa', $elm$json$Json$Decode$int),
+	A2($elm$json$Json$Decode$field, 'fimDeJogo', $elm$json$Json$Decode$bool));
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
@@ -6145,26 +6181,15 @@ var $author$project$Main$update = F2(
 						{palpite: novo}),
 					$elm$core$Platform$Cmd$none);
 			case 'Enviar':
-				return ($elm$core$String$length(model.palpite) !== 5) ? _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{
-							historico: _Utils_ap(
-								model.historico,
-								_List_fromArray(
-									['A palavra precisa ter 5 letras!']))
-						}),
-					$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
-					model,
-					$elm$http$Http$get(
-						{
-							expect: $elm$http$Http$expectString($author$project$Main$RecebeResposta),
-							url: '/palpite/' + model.palpite
-						}));
-			case 'RecebeResposta':
-				if (msg.a.$ === 'Ok') {
-					var resposta = msg.a.a;
-					var acabou = A2($elm$core$String$contains, 'Fim de jogo', resposta) || A2($elm$core$String$contains, 'Parabéns', resposta);
+				if ($elm$core$String$length(model.palpite) !== 5) {
+					var aviso = {
+						ausentes: _List_Nil,
+						certas: _List_Nil,
+						erradas: _List_Nil,
+						fimDeJogo: false,
+						mensagem: 'A palavra precisa ter 5 letras!',
+						tentativa: $elm$core$List$length(model.historico)
+					};
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
@@ -6172,20 +6197,50 @@ var $author$project$Main$update = F2(
 								historico: _Utils_ap(
 									model.historico,
 									_List_fromArray(
-										[resposta])),
-								jogoAtivo: !acabou,
-								palpite: ''
+										[aviso]))
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(
+						model,
+						$elm$http$Http$get(
+							{
+								expect: A2($elm$http$Http$expectJson, $author$project$Main$RecebeResposta, $author$project$Main$respostaDecoder),
+								url: '/palpite/' + model.palpite
+							}));
+				}
+			case 'RecebeResposta':
+				if (msg.a.$ === 'Ok') {
+					var r = msg.a.a;
+					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
 								historico: _Utils_ap(
 									model.historico,
 									_List_fromArray(
-										['Erro de conexão com o servidor']))
+										[r])),
+								jogoAtivo: !r.fimDeJogo,
+								palpite: ''
+							}),
+						$elm$core$Platform$Cmd$none);
+				} else {
+					var erro = {
+						ausentes: _List_Nil,
+						certas: _List_Nil,
+						erradas: _List_Nil,
+						fimDeJogo: false,
+						mensagem: 'Erro de conexão com o servidor',
+						tentativa: $elm$core$List$length(model.historico)
+					};
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								historico: _Utils_ap(
+									model.historico,
+									_List_fromArray(
+										[erro]))
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
@@ -6194,23 +6249,24 @@ var $author$project$Main$update = F2(
 					model,
 					$elm$http$Http$get(
 						{
-							expect: $elm$http$Http$expectString($author$project$Main$RecebeNova),
+							expect: A2($elm$http$Http$expectJson, $author$project$Main$RecebeNova, $author$project$Main$respostaDecoder),
 							url: '/nova'
 						}));
 			default:
 				if (msg.a.$ === 'Ok') {
-					var resposta = msg.a.a;
+					var r = msg.a.a;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
 								historico: _List_fromArray(
-									[resposta]),
+									[r]),
 								jogoAtivo: true,
 								palpite: ''
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
+					var erroNova = {ausentes: _List_Nil, certas: _List_Nil, erradas: _List_Nil, fimDeJogo: false, mensagem: 'Erro ao iniciar nova partida', tentativa: 0};
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
@@ -6218,7 +6274,7 @@ var $author$project$Main$update = F2(
 								historico: _Utils_ap(
 									model.historico,
 									_List_fromArray(
-										['Erro ao iniciar nova partida']))
+										[erroNova]))
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
@@ -6244,7 +6300,6 @@ var $elm$html$Html$form = _VirtualDom_node('form');
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$html$Html$h2 = _VirtualDom_node('h2');
 var $elm$html$Html$input = _VirtualDom_node('input');
-var $elm$html$Html$li = _VirtualDom_node('li');
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -6275,12 +6330,10 @@ var $elm$html$Html$Events$stopPropagationOn = F2(
 			event,
 			$elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
 	});
-var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$at = F2(
 	function (fields, decoder) {
 		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
 	});
-var $elm$json$Json$Decode$string = _Json_decodeString;
 var $elm$html$Html$Events$targetValue = A2(
 	$elm$json$Json$Decode$at,
 	_List_fromArray(
@@ -6331,6 +6384,65 @@ var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$ul = _VirtualDom_node('ul');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
+var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
+var $elm$html$Html$li = _VirtualDom_node('li');
+var $elm$html$Html$span = _VirtualDom_node('span');
+var $author$project$Main$viewResposta = function (r) {
+	return A2(
+		$elm$html$Html$li,
+		_List_Nil,
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('certas')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(
+								'Certas: ' + A2($elm$core$String$join, '', r.certas))
+							])),
+						$elm$html$Html$text(' '),
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('erradas')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(
+								'Erradas: ' + A2($elm$core$String$join, '', r.erradas))
+							])),
+						$elm$html$Html$text(' '),
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('ausentes')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(
+								'Ausentes: ' + A2($elm$core$String$join, '', r.ausentes))
+							]))
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text(r.mensagem)
+					]))
+			]));
+};
 var $author$project$Main$view = function (model) {
 	return A2(
 		$elm$html$Html$div,
@@ -6394,18 +6506,7 @@ var $author$project$Main$view = function (model) {
 				A2(
 				$elm$html$Html$ul,
 				_List_Nil,
-				A2(
-					$elm$core$List$map,
-					function (t) {
-						return A2(
-							$elm$html$Html$li,
-							_List_Nil,
-							_List_fromArray(
-								[
-									$elm$html$Html$text(t)
-								]));
-					},
-					model.historico))
+				A2($elm$core$List$map, $author$project$Main$viewResposta, model.historico))
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(

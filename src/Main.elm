@@ -1,17 +1,41 @@
 module Main exposing (main)
 
 import Browser
-import Html exposing (Html, button, div, form, h1, h2, input, li, text, ul)
+import Html exposing (Html, button, div, form, h1, h2, input, li, span, text, ul)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Http
+import Json.Decode as Decode exposing (Decoder)
+
+
+
+type alias Resposta =
+    { mensagem : String
+    , certas : List String
+    , erradas : List String
+    , ausentes : List String
+    , tentativa : Int
+    , fimDeJogo : Bool
+    }
+
+
+respostaDecoder : Decoder Resposta
+respostaDecoder =
+    Decode.map6 Resposta
+        (Decode.field "mensagem" Decode.string)
+        (Decode.field "certas" (Decode.list Decode.string))
+        (Decode.field "erradas" (Decode.list Decode.string))
+        (Decode.field "ausentes" (Decode.list Decode.string))
+        (Decode.field "tentativa" Decode.int)
+        (Decode.field "fimDeJogo" Decode.bool)
+
 
 
 -- MODEL
 
 type alias Model =
     { palpite : String
-    , historico : List String
+    , historico : List Resposta
     , jogoAtivo : Bool
     }
 
@@ -22,14 +46,15 @@ init _ =
     )
 
 
+
 -- UPDATE
 
 type Msg
     = AtualizarPalpite String
     | Enviar
-    | RecebeResposta (Result Http.Error String)
+    | RecebeResposta (Result Http.Error Resposta)
     | NovaPartida
-    | RecebeNova (Result Http.Error String)
+    | RecebeNova (Result Http.Error Resposta)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -40,35 +65,49 @@ update msg model =
 
         Enviar ->
             if String.length model.palpite /= 5 then
-                ( { model
-                    | historico = model.historico ++ [ "A palavra precisa ter 5 letras!" ]
-                  }
+                let
+                    aviso =
+                        { mensagem = "A palavra precisa ter 5 letras!"
+                        , certas = []
+                        , erradas = []
+                        , ausentes = []
+                        , tentativa = List.length model.historico
+                        , fimDeJogo = False
+                        }
+                in
+                ( { model | historico = model.historico ++ [ aviso ] }
                 , Cmd.none
                 )
+
             else
                 ( model
                 , Http.get
                     { url = "/palpite/" ++ model.palpite
-                    , expect = Http.expectString RecebeResposta
+                    , expect = Http.expectJson RecebeResposta respostaDecoder
                     }
                 )
 
-        RecebeResposta (Ok resposta) ->
-            let
-                acabou =
-                    String.contains "Fim de jogo" resposta
-                        || String.contains "Parabéns" resposta
-            in
+        RecebeResposta (Ok r) ->
             ( { model
-                | historico = model.historico ++ [ resposta ]
+                | historico = model.historico ++ [ r ]
                 , palpite = ""
-                , jogoAtivo = not acabou
+                , jogoAtivo = not r.fimDeJogo
               }
             , Cmd.none
             )
 
         RecebeResposta (Err _) ->
-            ( { model | historico = model.historico ++ [ "Erro de conexão com o servidor" ] }
+            let
+                erro =
+                    { mensagem = "Erro de conexão com o servidor"
+                    , certas = []
+                    , erradas = []
+                    , ausentes = []
+                    , tentativa = List.length model.historico
+                    , fimDeJogo = False
+                    }
+            in
+            ( { model | historico = model.historico ++ [ erro ] }
             , Cmd.none
             )
 
@@ -76,23 +115,30 @@ update msg model =
             ( model
             , Http.get
                 { url = "/nova"
-                , expect = Http.expectString RecebeNova
+                , expect = Http.expectJson RecebeNova respostaDecoder
                 }
             )
 
-        RecebeNova (Ok resposta) ->
-            ( { model
-                | historico = [ resposta ]
-                , palpite = ""
-                , jogoAtivo = True
-              }
+        RecebeNova (Ok r) ->
+            ( { model | historico = [ r ], palpite = "", jogoAtivo = True }
             , Cmd.none
             )
 
         RecebeNova (Err _) ->
-            ( { model | historico = model.historico ++ [ "Erro ao iniciar nova partida" ] }
+            let
+                erroNova =
+                    { mensagem = "Erro ao iniciar nova partida"
+                    , certas = []
+                    , erradas = []
+                    , ausentes = []
+                    , tentativa = 0
+                    , fimDeJogo = False
+                    }
+            in
+            ( { model | historico = model.historico ++ [ erroNova ] }
             , Cmd.none
             )
+
 
 
 -- VIEW
@@ -113,8 +159,24 @@ view model =
             , button [ type_ "submit", disabled (not model.jogoAtivo) ] [ text "Chutar" ]
             ]
         , h2 [] [ text "Tentativas:" ]
-        , ul [] (List.map (\t -> li [] [ text t ]) model.historico)
+        , ul [] (List.map viewResposta model.historico)
         ]
+
+
+viewResposta : Resposta -> Html Msg
+viewResposta r =
+    li []
+        [ div []
+            [ span [ class "certas" ]  [ text ("Certas: "  ++ String.join "" r.certas) ]
+            , text " "
+            , span [ class "erradas" ] [ text ("Erradas: " ++ String.join "" r.erradas) ]
+            , text " "
+            , span [ class "ausentes" ] [ text ("Ausentes: " ++ String.join "" r.ausentes) ]
+            ]
+        , div [] [ text r.mensagem ]
+        ]
+
+
 
 
 -- MAIN

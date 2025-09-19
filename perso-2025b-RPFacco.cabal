@@ -26,4 +26,5 @@ executable perso-2025b-RPFacco
         wai-extra,
         wai-middleware-static,
         random,
-        text
+        text,
+        aeson

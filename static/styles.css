@@ -1,0 +1,54 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+#app {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  width: 400px;
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+}
+
+button {
+  margin: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background-color: #007acc;
+  color: white;
+  cursor: pointer;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+li {
+  margin: 4px 0;
+}
+
+.certas {
+  color: green;
+  font-weight: bold;
+}
+
+.erradas {
+  color: orange;
+  font-weight: bold;
+}
+
+.ausentes {
+  color: gray;
+  font-weight: bold;
+}
