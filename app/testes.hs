@@ -53,7 +53,7 @@ receberPalpite palpite resposta numTentativa
         <> " | Letras em posicao errada: " <> erradas
         <> " | Letras ausentes: " <> ausentes
 
--- começar o jogo (interativo no terminal)
+{- -- começar o jogo (interativo no terminal)
 jogar :: T.Text -> Int -> IO ()
 jogar resposta numTentativa
     | numTentativa >= 6 = putStrLn $ "Você perdeu! A resposta era: " ++ T.unpack resposta
@@ -70,7 +70,7 @@ jogar resposta numTentativa
                if resultado == "Acertou!"
                   then putStrLn "Parabéns!"
                   else jogar resposta (numTentativa + 1)
-
+-}
 
 main :: IO ()
 main = scotty 3000 $ do

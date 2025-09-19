@@ -2,11 +2,13 @@
 
 import Web.Scotty
 import Network.Wai.Middleware.RequestLogger (logStdoutDev)
+import Network.Wai.Middleware.Static (staticPolicy, addBase)
 import System.Random (randomRIO)
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import qualified Data.Text.Lazy as TL
+import Data.List (nub)
 import Data.IORef
 
 
@@ -16,73 +18,86 @@ carregarPalavras = do
     conteudo <- TIO.readFile "palavras.txt"
     return (T.lines conteudo)
 
-
 -- seleciona uma palavra aleatoria
 getRandomPalavra :: [T.Text] -> IO T.Text
 getRandomPalavra lista = do
     index <- randomRIO (0, length lista - 1)
     return $ lista !! index
 
-
--- compara palpite com resposta (normalizando para minúsculas)
+-- compara palpite com resposta
 comparaPalavra :: T.Text -> T.Text -> Bool
 comparaPalavra palpite resposta = T.toLower palpite == T.toLower resposta
 
+checarTentativas :: Int -> Bool
+checarTentativas numTentativa = numTentativa < 6
 
--- gera dicas a partir de um palpite (também normalizando)
+-- gera dicas
 gerarDicas :: T.Text -> T.Text -> (T.Text, T.Text, T.Text)
 gerarDicas palpite resposta =
     let p = T.toLower palpite
         r = T.toLower resposta
-        -- cria pares e compara
         certas   = [c | (c,r') <- T.zip p r, c == r']
-        -- letras que aparecem na resposta, mas nao estao em 'certas'
         erradas  = [c | c <- T.unpack p, c `elem` T.unpack r, c `notElem` certas]
-        -- letras que nao estao na resposta
         ausentes = [c | c <- T.unpack p, c `notElem` T.unpack r]
-    in (T.pack certas, T.pack erradas, T.pack ausentes)
+    in ( T.pack certas
+       , T.pack (nub erradas)
+       , T.pack (nub ausentes)
+       )
 
-
--- controla limite de tentativas
-checarTentativas :: Int -> Bool
-checarTentativas numTentativa = numTentativa < 6
-
-
--- recebe um palpite e retorna mensagem com dicas
+-- recebe palpite
 receberPalpite :: T.Text -> T.Text -> Int -> T.Text
 receberPalpite palpite resposta numTentativa
     | T.length palpite /= 5 = "A palavra precisa ter 5 letras!"
     | comparaPalavra palpite resposta = "Acertou!"
     | otherwise =
         let (certas, erradas, ausentes) = gerarDicas palpite resposta
-        in "Letras em posicao certa: " <> certas
-        <> " | Letras em posicao errada: " <> erradas
-        <> " | Letras ausentes: " <> ausentes
+        in "Tentativa " <> T.pack (show (numTentativa+1)) <> ":\n"
+        <> " Certas: " <> certas
+        <> " | Erradas: " <> erradas
+        <> " | Ausentes: " <> ausentes
 
-
--- começar o jogo (interativo no terminal)
-jogar :: T.Text -> Int -> IO ()
-jogar resposta numTentativa
-    | numTentativa >= 6 = putStrLn $ "Você perdeu! A resposta era: " ++ T.unpack resposta
-    | otherwise = do
-        putStrLn "Digite uma palavra de 5 letras:"
-        entrada <- getLine
-        if length entrada /= 5
-           then do
-               putStrLn "A palavra precisa ter 5 letras! Tente novamente."
-               jogar resposta numTentativa
-           else do
-               let resultado = receberPalpite (T.pack entrada) resposta numTentativa
-               putStrLn (T.unpack resultado)
-               if resultado == "Acertou!"
-                  then putStrLn "Parabéns!"
-                  else jogar resposta (numTentativa + 1)
-
+        
 
 main :: IO ()
-main = scotty 3000 $ do
-    middleware logStdoutDev
-    get "/" $ do
-        lista <- liftIO carregarPalavras
-        randomPalavra <- liftIO (getRandomPalavra lista)
-        text (TL.fromStrict randomPalavra)
+main = do
+    lista <- carregarPalavras
+    palavraInicial <- getRandomPalavra lista
+    palavraRef <- newIORef palavraInicial
+    tentativasRef <- newIORef (0 :: Int)
+
+    scotty 3000 $ do
+        middleware logStdoutDev
+        get "/" $ file "static/index.html"
+
+        -- iniciar nova partida (sorteia nova palavra e zera tentativas)
+        get "/nova" $ do
+            lista <- liftIO carregarPalavras
+            palavra <- liftIO (getRandomPalavra lista)
+            liftIO (writeIORef palavraRef palavra)
+            liftIO (writeIORef tentativasRef 0)
+            text "Nova palavra sorteada! Boa sorte."
+
+        -- rota de palpite
+        get "/palpite/:p" $ do
+            palpiteLazy <- param "p"
+            let palpite = TL.toStrict palpiteLazy
+
+            palavra <- liftIO (readIORef palavraRef)
+            tentativas <- liftIO (readIORef tentativasRef)
+
+            if not (checarTentativas tentativas)
+            then text (TL.fromStrict ("Fim de jogo! A palavra era: " <> palavra))
+            else do
+                let resposta = receberPalpite palpite palavra tentativas
+
+                if T.length palpite /= 5
+                then text (TL.fromStrict resposta)  -- não conta tentativa
+                else if comparaPalavra palpite palavra
+                    then text (TL.fromStrict ("Parabéns, você acertou a palavra: " <> palavra))
+                    else do
+                    liftIO $ writeIORef tentativasRef (tentativas + 1)
+                    text (TL.fromStrict resposta)
+
+
+
+
