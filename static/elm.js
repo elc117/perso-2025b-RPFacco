@@ -6142,18 +6142,18 @@ var $elm$http$Http$get = function (r) {
 };
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$core$Basics$not = _Basics_not;
-var $author$project$Main$Resposta = F6(
-	function (mensagem, certas, erradas, ausentes, tentativa, fimDeJogo) {
-		return {ausentes: ausentes, certas: certas, erradas: erradas, fimDeJogo: fimDeJogo, mensagem: mensagem, tentativa: tentativa};
+var $author$project$Main$Resposta = F8(
+	function (mensagem, certas, erradas, ausentes, mascara, palpite, tentativa, fimDeJogo) {
+		return {ausentes: ausentes, certas: certas, erradas: erradas, fimDeJogo: fimDeJogo, mascara: mascara, mensagem: mensagem, palpite: palpite, tentativa: tentativa};
 	});
 var $elm$json$Json$Decode$bool = _Json_decodeBool;
 var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$int = _Json_decodeInt;
 var $elm$json$Json$Decode$list = _Json_decodeList;
-var $elm$json$Json$Decode$map6 = _Json_map6;
+var $elm$json$Json$Decode$map8 = _Json_map8;
 var $elm$json$Json$Decode$string = _Json_decodeString;
-var $author$project$Main$respostaDecoder = A7(
-	$elm$json$Json$Decode$map6,
+var $author$project$Main$respostaDecoder = A9(
+	$elm$json$Json$Decode$map8,
 	$author$project$Main$Resposta,
 	A2($elm$json$Json$Decode$field, 'mensagem', $elm$json$Json$Decode$string),
 	A2(
@@ -6168,6 +6168,8 @@ var $author$project$Main$respostaDecoder = A7(
 		$elm$json$Json$Decode$field,
 		'ausentes',
 		$elm$json$Json$Decode$list($elm$json$Json$Decode$string)),
+	A2($elm$json$Json$Decode$field, 'mascara', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'palpite', $elm$json$Json$Decode$string),
 	A2($elm$json$Json$Decode$field, 'tentativa', $elm$json$Json$Decode$int),
 	A2($elm$json$Json$Decode$field, 'fimDeJogo', $elm$json$Json$Decode$bool));
 var $author$project$Main$update = F2(
@@ -6187,7 +6189,9 @@ var $author$project$Main$update = F2(
 						certas: _List_Nil,
 						erradas: _List_Nil,
 						fimDeJogo: false,
+						mascara: '-----',
 						mensagem: 'A palavra precisa ter 5 letras!',
+						palpite: model.palpite,
 						tentativa: $elm$core$List$length(model.historico)
 					};
 					return _Utils_Tuple2(
@@ -6230,7 +6234,9 @@ var $author$project$Main$update = F2(
 						certas: _List_Nil,
 						erradas: _List_Nil,
 						fimDeJogo: false,
+						mascara: '-----',
 						mensagem: 'Erro de conexão com o servidor',
+						palpite: model.palpite,
 						tentativa: $elm$core$List$length(model.historico)
 					};
 					return _Utils_Tuple2(
@@ -6266,7 +6272,7 @@ var $author$project$Main$update = F2(
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
-					var erroNova = {ausentes: _List_Nil, certas: _List_Nil, erradas: _List_Nil, fimDeJogo: false, mensagem: 'Erro ao iniciar nova partida', tentativa: 0};
+					var erroNova = {ausentes: _List_Nil, certas: _List_Nil, erradas: _List_Nil, fimDeJogo: false, mascara: '-----', mensagem: 'Erro ao iniciar nova partida', palpite: '', tentativa: 0};
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
@@ -6434,6 +6440,20 @@ var $author$project$Main$viewResposta = function (r) {
 								'Ausentes: ' + A2($elm$core$String$join, '', r.ausentes))
 							]))
 					])),
+				A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Posições: ' + r.mascara)
+					])),
+				(r.palpite !== '') ? A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Palpite: ' + r.palpite)
+					])) : $elm$html$Html$text(''),
 				A2(
 				$elm$html$Html$div,
 				_List_Nil,

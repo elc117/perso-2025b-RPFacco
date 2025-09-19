@@ -14,6 +14,8 @@ type alias Resposta =
     , certas : List String
     , erradas : List String
     , ausentes : List String
+    , mascara : String
+    , palpite : String
     , tentativa : Int
     , fimDeJogo : Bool
     }
@@ -21,11 +23,13 @@ type alias Resposta =
 
 respostaDecoder : Decoder Resposta
 respostaDecoder =
-    Decode.map6 Resposta
+    Decode.map8 Resposta
         (Decode.field "mensagem" Decode.string)
         (Decode.field "certas" (Decode.list Decode.string))
         (Decode.field "erradas" (Decode.list Decode.string))
         (Decode.field "ausentes" (Decode.list Decode.string))
+        (Decode.field "mascara"  Decode.string)
+        (Decode.field "palpite"  Decode.string)
         (Decode.field "tentativa" Decode.int)
         (Decode.field "fimDeJogo" Decode.bool)
 
@@ -71,6 +75,8 @@ update msg model =
                         , certas = []
                         , erradas = []
                         , ausentes = []
+                        , mascara = "-----"
+                        , palpite = model.palpite
                         , tentativa = List.length model.historico
                         , fimDeJogo = False
                         }
@@ -103,6 +109,8 @@ update msg model =
                     , certas = []
                     , erradas = []
                     , ausentes = []
+                    , mascara = "-----"
+                    , palpite = model.palpite
                     , tentativa = List.length model.historico
                     , fimDeJogo = False
                     }
@@ -131,6 +139,8 @@ update msg model =
                     , certas = []
                     , erradas = []
                     , ausentes = []
+                    , mascara = "-----"
+                    , palpite = ""
                     , tentativa = 0
                     , fimDeJogo = False
                     }
@@ -173,8 +183,15 @@ viewResposta r =
             , text " "
             , span [ class "ausentes" ] [ text ("Ausentes: " ++ String.join "" r.ausentes) ]
             ]
+        , div [] [ text ("Posições: " ++ r.mascara) ]
+        , if r.palpite /= "" then
+            div [] [ text ("Palpite: " ++ r.palpite) ]
+          else
+            text ""
         , div [] [ text r.mensagem ]
         ]
+
+
 
 
 

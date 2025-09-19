@@ -19,6 +19,8 @@ data Resposta = Resposta
   , certas    :: [String]
   , erradas   :: [String]
   , ausentes  :: [String]
+  , mascara   :: T.Text
+  , palpite   :: T.Text
   , tentativa :: Int
   , fimDeJogo :: Bool
   } deriving (Show, Generic)
@@ -28,6 +30,13 @@ instance FromJSON Resposta
 
 toListChars :: T.Text -> [String]
 toListChars = map (:[]) . T.unpack
+
+maskCorretas :: T.Text -> T.Text -> T.Text
+maskCorretas palpite resposta =
+  let p = T.toLower palpite
+      r = T.toLower resposta
+  in T.pack [ if c == r' then c else '-' | (c, r') <- T.zip p r ]
+
 
 -- carregar palavras do .txt
 carregarPalavras :: IO [T.Text]
@@ -71,6 +80,8 @@ receberPalpite palpite resposta numTentativa
           , certas    = []
           , erradas   = []
           , ausentes  = []
+          , mascara   = T.replicate 5 "-"
+          , palpite   = palpite
           , tentativa = numTentativa
           , fimDeJogo = False
           }
@@ -83,6 +94,8 @@ receberPalpite palpite resposta numTentativa
           , certas    = toListChars certasT
           , erradas   = []
           , ausentes  = []
+          , mascara   = maskCorretas palpite resposta
+          , palpite   = palpite
           , tentativa = numTentativa + 1
           , fimDeJogo = True
           }
@@ -95,6 +108,8 @@ receberPalpite palpite resposta numTentativa
           , certas    = toListChars certasT
           , erradas   = toListChars erradasT
           , ausentes  = toListChars ausentesT
+          , mascara   = maskCorretas palpite resposta
+          , palpite   = palpite
           , tentativa = numTentativa + 1
           , fimDeJogo = False
           }
@@ -125,6 +140,8 @@ main = do
                 , certas    = []
                 , erradas   = []
                 , ausentes  = []
+                , mascara   = T.replicate 5 "-"
+                , palpite   = ""
                 , tentativa = 0
                 , fimDeJogo = False
                 }
@@ -144,6 +161,8 @@ main = do
                     , certas    = []
                     , erradas   = []
                     , ausentes  = []
+                    , mascara   = T.replicate 5 "-"
+                    , palpite   = palpite
                     , tentativa = tentativas
                     , fimDeJogo = True
                     }
