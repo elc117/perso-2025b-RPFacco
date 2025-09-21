@@ -68,10 +68,10 @@ ul {
 }
 
 .attempts {
-  max-height: 50vh;   /* ajuste como preferir */
+  max-height: 50vh;
   overflow-y: auto;
   margin: 8px 0;
-  padding-right: 6px; /* espaço pro scrollbar */
+  padding-right: 6px;
 }
 
 ul.attempt-list {
