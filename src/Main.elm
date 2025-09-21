@@ -81,7 +81,7 @@ update msg model =
                         , fimDeJogo = False
                         }
                 in
-                ( { model | historico = model.historico ++ [ aviso ] }
+                ( { model | historico = aviso :: model.historico }
                 , Cmd.none
                 )
 
@@ -95,7 +95,7 @@ update msg model =
 
         RecebeResposta (Ok r) ->
             ( { model
-                | historico = model.historico ++ [ r ]
+                | historico = r :: model.historico
                 , palpite = ""
                 , jogoAtivo = not r.fimDeJogo
               }
@@ -115,9 +115,7 @@ update msg model =
                     , fimDeJogo = False
                     }
             in
-            ( { model | historico = model.historico ++ [ erro ] }
-            , Cmd.none
-            )
+            ( { model | historico = erro :: model.historico }, Cmd.none )
 
         NovaPartida ->
             ( model
@@ -145,7 +143,7 @@ update msg model =
                     , fimDeJogo = False
                     }
             in
-            ( { model | historico = model.historico ++ [ erroNova ] }
+            ( { model | historico = erroNova :: model.historico  }
             , Cmd.none
             )
 
@@ -169,8 +167,10 @@ view model =
             , button [ type_ "submit", disabled (not model.jogoAtivo) ] [ text "Chutar" ]
             ]
         , h2 [] [ text "Tentativas:" ]
-        , ul [] (List.map viewResposta model.historico)
+        , div [ class "attempts" ]
+            [ ul [ class "attempt-list" ] (List.map viewResposta model.historico) ]
         ]
+
 
 
 viewResposta : Resposta -> Html Msg

@@ -19,6 +19,10 @@ h1 {
   color: #ffffff;
 }
 
+h2 {
+  color: #ffffff;
+}
+
 button {
   margin: 8px;
   padding: 8px 16px;
@@ -35,20 +39,43 @@ button:disabled {
 }
 
 li {
-  margin: 4px 0;
+  list-style: none;
+  margin-left: 0;
+  padding-bottom: 20px;
+}
+
+ul {
+  padding-left: 0;
+  color: white;
+  font-size: 18px;
 }
 
 .certas {
-  color: green;
+  color: rgb(123, 253, 123);
   font-weight: bold;
 }
 
 .erradas {
+  margin-left: 40px;
   color: orange;
   font-weight: bold;
 }
 
 .ausentes {
-  color: gray;
+  margin-left: 40px;
+  color: rgb(255, 97, 97);
   font-weight: bold;
+}
+
+.attempts {
+  max-height: 50vh;   /* ajuste como preferir */
+  overflow-y: auto;
+  margin: 8px 0;
+  padding-right: 6px; /* espaço pro scrollbar */
+}
+
+ul.attempt-list {
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
 }

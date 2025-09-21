@@ -168,13 +168,33 @@ main = do
                     }
             else do
                 let resposta = receberPalpite palpite palavra tentativas
-                if T.length palpite /= 5
-                then json resposta 
-                else if comparaPalavra palpite palavra
-                    then json resposta
-                    else do
-                        liftIO $ writeIORef tentativasRef (tentativas + 1)
-                        json resposta
+                if T.length palpite /= 5 then
+                    --palpite inválido nao conta tentativa
+                    json resposta
+
+                else if comparaPalavra palpite palavra then
+                    --acertou: fim de jogo a vem dentro de 'resposta'
+                    json resposta
+
+                else do
+                    --errou com palpite valido: incrementa e, se virou a 6, encerra
+                    let tent' = tentativas + 1
+                    liftIO $ writeIORef tentativasRef tent'
+
+                    if tent' >= 6 then
+                        json Resposta
+                            { mensagem  = "Fim de jogo! A palavra era: " <> palavra
+                            , certas    = []
+                            , erradas   = []
+                            , ausentes  = []
+                            , mascara   = T.replicate 5 "-"
+                            , palpite   = ""          
+                            , tentativa = tent'
+                            , fimDeJogo = True
+                            }
+                        else
+                            json resposta
+
 
 
 

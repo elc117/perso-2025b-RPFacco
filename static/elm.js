@@ -6198,10 +6198,7 @@ var $author$project$Main$update = F2(
 						_Utils_update(
 							model,
 							{
-								historico: _Utils_ap(
-									model.historico,
-									_List_fromArray(
-										[aviso]))
+								historico: A2($elm$core$List$cons, aviso, model.historico)
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
@@ -6220,10 +6217,7 @@ var $author$project$Main$update = F2(
 						_Utils_update(
 							model,
 							{
-								historico: _Utils_ap(
-									model.historico,
-									_List_fromArray(
-										[r])),
+								historico: A2($elm$core$List$cons, r, model.historico),
 								jogoAtivo: !r.fimDeJogo,
 								palpite: ''
 							}),
@@ -6243,10 +6237,7 @@ var $author$project$Main$update = F2(
 						_Utils_update(
 							model,
 							{
-								historico: _Utils_ap(
-									model.historico,
-									_List_fromArray(
-										[erro]))
+								historico: A2($elm$core$List$cons, erro, model.historico)
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
@@ -6277,10 +6268,7 @@ var $author$project$Main$update = F2(
 						_Utils_update(
 							model,
 							{
-								historico: _Utils_ap(
-									model.historico,
-									_List_fromArray(
-										[erroNova]))
+								historico: A2($elm$core$List$cons, erroNova, model.historico)
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
@@ -6292,6 +6280,15 @@ var $author$project$Main$AtualizarPalpite = function (a) {
 var $author$project$Main$Enviar = {$: 'Enviar'};
 var $author$project$Main$NovaPartida = {$: 'NovaPartida'};
 var $elm$html$Html$button = _VirtualDom_node('button');
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$string(string));
+	});
+var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$json$Json$Encode$bool = _Json_wrap;
 var $elm$html$Html$Attributes$boolProperty = F2(
 	function (key, bool) {
@@ -6376,21 +6373,12 @@ var $elm$html$Html$Events$onSubmit = function (msg) {
 			$elm$html$Html$Events$alwaysPreventDefault,
 			$elm$json$Json$Decode$succeed(msg)));
 };
-var $elm$json$Json$Encode$string = _Json_wrap;
-var $elm$html$Html$Attributes$stringProperty = F2(
-	function (key, string) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			$elm$json$Json$Encode$string(string));
-	});
 var $elm$html$Html$Attributes$placeholder = $elm$html$Html$Attributes$stringProperty('placeholder');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$ul = _VirtualDom_node('ul');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
-var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$li = _VirtualDom_node('li');
 var $elm$html$Html$span = _VirtualDom_node('span');
 var $author$project$Main$viewResposta = function (r) {
@@ -6524,9 +6512,21 @@ var $author$project$Main$view = function (model) {
 						$elm$html$Html$text('Tentativas:')
 					])),
 				A2(
-				$elm$html$Html$ul,
-				_List_Nil,
-				A2($elm$core$List$map, $author$project$Main$viewResposta, model.historico))
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('attempts')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$ul,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('attempt-list')
+							]),
+						A2($elm$core$List$map, $author$project$Main$viewResposta, model.historico))
+					]))
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(
