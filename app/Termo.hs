@@ -25,8 +25,13 @@ data Resposta = Resposta
   , fimDeJogo :: Bool
   } deriving (Show, Generic)
 
+data PalpiteReq = PalpiteReq
+  { palp :: T.Text
+  } deriving (Show, Generic)
+
 instance ToJSON Resposta
 instance FromJSON Resposta
+instance FromJSON PalpiteReq
 
 toListChars :: T.Text -> [String]
 toListChars = map (:[]) . T.unpack
@@ -120,7 +125,7 @@ main :: IO ()
 main = do
     lista <- carregarPalavras
     palavraInicial <- getRandomPalavra lista
-    palavraRef <- newIORef palavraInicial
+    palavraRef <- newIORef (palavraInicial :: T.Text)
     tentativasRef <- newIORef (0 :: Int)
 
     scotty 3000 $ do
@@ -148,10 +153,9 @@ main = do
 
 
         -- rota de palpite
-        get "/palpite/:p" $ do
-            palpiteLazy <- param "p"
-            let palpite = TL.toStrict palpiteLazy
-
+        post "/palpite" $ do
+            PalpiteReq palpite <- jsonData
+            
             palavra <- liftIO (readIORef palavraRef)
             tentativas <- liftIO (readIORef tentativasRef)
 

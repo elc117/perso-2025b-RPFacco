@@ -24,10 +24,12 @@ Primeiramente, eu desenvolvi um protótipo do jogo possível de ser testado no t
   
 Uma dificuldade que tive foi na utilização de IO vs valores "puros", e entendi que, em Haskell, operações que tocam o mundo externo pertencem a IO (ler/escrever arquivos, imprimir no console, etc). Também pesquisei sobre Data.Text para entender como isso seria útil no código, e percebi que ele é mais eficiente que String para manipular texto e lida melhor com Unicode (acentos). Comecei a usar Text na lógica e só converto para Lazy Text com TL.fromStrict, que é o que o Scotty espera em text.  
   
-Depois, precisei transformar as informações em JSON para a comunicação com o frontend (Elm). Fiz a escolha de usar elm por ser parecido com haskell. Eu ainda não domino a linguagem, mas consegui entender o básico da arquitetura model-update-view e, fazendo uso dos exemplos fornecidos pelo próprio site da Elm, além de .html e .css, fiz a construção do front. Como esse projeto é só um protótipo do jogo "Termo", priorizei o que eu dominava melhor no frontend e fui incorporando o restante aos poucos.
+Depois, precisei transformar as informações em JSON para a comunicação com o frontend (Elm). Fiz a escolha de usar elm por ser parecido com haskell. Eu ainda não domino a linguagem, mas consegui entender o básico da arquitetura model-update-view e, fazendo uso dos exemplos fornecidos pelo próprio site da Elm, além de .html e .css, fiz a construção do front.
 
-É verdade que elm é parecido com haskell, pois as duas linguagens tem uma sintaxe parecida e são puramente funcionais. Porém, no processo, tive algumas dificuldades e aprendi algumas coisas, uma delas:  
+É verdade que elm é parecido com haskell, pois as duas linguagens tem uma sintaxe parecida e são puramente funcionais. Porém, no processo, tive algumas dificuldades e aprendi algumas coisas, uma delas (com o uso de GET):  
 Quando o usuário clica “chutar”, o update não faz http diretamente, fiz ele retornar um cmd com http.get para a rota /palpite/ ++ palpite. Então, quando a resposta volta, o runtime dispara a mensagem RecebeResposta, e aí eu atualizo o histórico.
+
+Após isso tudo, percebi que não fazia sentido usar get para receber o palpite, por que a operação muda o estado do jogo. Sinceramente, notei isso tarde no projeto, mas acabou sendo simples fazer a troca. No haskell apenas mudei a rota para post, e no elm mudei o http.get para http.post.
   
 ## **Orientações para execução:**  
 Pré-requisitos: GHC + Cabal  
@@ -58,3 +60,4 @@ https://github.com/user-attachments/assets/a5eafc80-72e6-4af0-86da-d2a68e748c16
    12. https://elm-lang.org/examples/quotes
    13. https://guide.elm-lang.org/effects/json
    14. https://package.elm-lang.org/packages/elm/json/latest/Json.Decode
+   15. https://www.educative.io/answers/sending-http-requests-in-elm

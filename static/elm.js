@@ -6140,8 +6140,31 @@ var $elm$http$Http$get = function (r) {
 	return $elm$http$Http$request(
 		{body: $elm$http$Http$emptyBody, expect: r.expect, headers: _List_Nil, method: 'GET', timeout: $elm$core$Maybe$Nothing, tracker: $elm$core$Maybe$Nothing, url: r.url});
 };
+var $elm$http$Http$jsonBody = function (value) {
+	return A2(
+		_Http_pair,
+		'application/json',
+		A2($elm$json$Json$Encode$encode, 0, value));
+};
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$core$Basics$not = _Basics_not;
+var $elm$json$Json$Encode$object = function (pairs) {
+	return _Json_wrap(
+		A3(
+			$elm$core$List$foldl,
+			F2(
+				function (_v0, obj) {
+					var k = _v0.a;
+					var v = _v0.b;
+					return A3(_Json_addField, k, v, obj);
+				}),
+			_Json_emptyObject(_Utils_Tuple0),
+			pairs));
+};
+var $elm$http$Http$post = function (r) {
+	return $elm$http$Http$request(
+		{body: r.body, expect: r.expect, headers: _List_Nil, method: 'POST', timeout: $elm$core$Maybe$Nothing, tracker: $elm$core$Maybe$Nothing, url: r.url});
+};
 var $author$project$Main$Resposta = F8(
 	function (mensagem, certas, erradas, ausentes, mascara, palpite, tentativa, fimDeJogo) {
 		return {ausentes: ausentes, certas: certas, erradas: erradas, fimDeJogo: fimDeJogo, mascara: mascara, mensagem: mensagem, palpite: palpite, tentativa: tentativa};
@@ -6172,6 +6195,7 @@ var $author$project$Main$respostaDecoder = A9(
 	A2($elm$json$Json$Decode$field, 'palpite', $elm$json$Json$Decode$string),
 	A2($elm$json$Json$Decode$field, 'tentativa', $elm$json$Json$Decode$int),
 	A2($elm$json$Json$Decode$field, 'fimDeJogo', $elm$json$Json$Decode$bool));
+var $elm$json$Json$Encode$string = _Json_wrap;
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
@@ -6204,10 +6228,18 @@ var $author$project$Main$update = F2(
 				} else {
 					return _Utils_Tuple2(
 						model,
-						$elm$http$Http$get(
+						$elm$http$Http$post(
 							{
+								body: $elm$http$Http$jsonBody(
+									$elm$json$Json$Encode$object(
+										_List_fromArray(
+											[
+												_Utils_Tuple2(
+												'palp',
+												$elm$json$Json$Encode$string(model.palpite))
+											]))),
 								expect: A2($elm$http$Http$expectJson, $author$project$Main$RecebeResposta, $author$project$Main$respostaDecoder),
-								url: '/palpite/' + model.palpite
+								url: '/palpite'
 							}));
 				}
 			case 'RecebeResposta':
@@ -6280,7 +6312,6 @@ var $author$project$Main$AtualizarPalpite = function (a) {
 var $author$project$Main$Enviar = {$: 'Enviar'};
 var $author$project$Main$NovaPartida = {$: 'NovaPartida'};
 var $elm$html$Html$button = _VirtualDom_node('button');
-var $elm$json$Json$Encode$string = _Json_wrap;
 var $elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
 		return A2(

@@ -6,6 +6,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Http
 import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
 
 
 
@@ -87,8 +88,10 @@ update msg model =
 
             else
                 ( model
-                , Http.get
-                    { url = "/palpite/" ++ model.palpite
+                , Http.post
+                    { 
+                        url = "/palpite"
+                    , body = Http.jsonBody (Encode.object [ ( "palp", Encode.string model.palpite ) ])
                     , expect = Http.expectJson RecebeResposta respostaDecoder
                     }
                 )
