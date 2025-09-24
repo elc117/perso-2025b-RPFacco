@@ -12,7 +12,7 @@ import Data.IORef
 -- carregar palavras do .txt
 carregarPalavras :: IO [T.Text]
 carregarPalavras = do
-    conteudo <- TIO.readFile "palavras.txt"
+    conteudo <- TIO.readFile "../palavras.txt"
     return (T.lines conteudo)
 
 -- seleciona uma palavra aleatoria
