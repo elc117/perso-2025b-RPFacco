@@ -61,3 +61,18 @@ https://github.com/user-attachments/assets/a5eafc80-72e6-4af0-86da-d2a68e748c16
    13. https://guide.elm-lang.org/effects/json
    14. https://package.elm-lang.org/packages/elm/json/latest/Json.Decode
    15. https://www.educative.io/answers/sending-http-requests-in-elm
+
+
+## Prompts usados para auxílio no projeto
+1. "Como enviar JSON do Haskell para um frontend Elm e consumir com Http.get e Json.Decode?"  
+   A IA me ajudou na construção de 'respostaDecoder'
+     
+2. Solicitei ajuda para fazer a parte "view" do Elm.  
+   Precisei de auxílio para contruir a interface pro usuário, com html, css e "view" do Elm.  
+  
+3. "Por que usar Data.Text.IO em vez de String? Me explique a diferença entre os dois e como pode ser útil no código."  
+  
+4. "Quando usar IORef? Qual a diferença de readIORef vs writeIORef e onde devo chamar liftIO em rotas Scotty."  
+   Pedi ajuda para entender melhor essa parte.  
+  
+5. Pedi à IA que gerasse palavras de 5 letras que não se repetissem, estilo Termo, para colocar em palavras.txt
